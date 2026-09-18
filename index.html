@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>풋살 전광판</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: #111;
+            color: #fff;
+            font-family: 'Consolas', 'Courier New', monospace, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =========================
+           타이머
+           ========================= */
+
+        .timer-board {
+            text-align: center;
+            padding: clamp(3px, 0.8vh, 10px) 15px;
+            background: #181818;
+            border-bottom: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .timer-ctrl-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(6px, 1.5vw, 20px);
+            width: 100%;
+            min-height: 0;
+        }
+
+        .time-display {
+            font-size: clamp(4rem, 20.4vw, 14.45rem);
+            font-weight: bold;
+            color: #ffffff;
+            font-family: 'Consolas', 'Courier New', monospace;
+            letter-spacing: 4px;
+            line-height: 0.85;
+            text-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+
+        .time-adjust-btn {
+            font-size: clamp(1.5rem, 5vw, 5rem);
+            font-weight: bold;
+            font-family: 'Consolas', 'Courier New', monospace;
+            padding: clamp(4px, 1vh, 12px) clamp(8px, 1.5vw, 20px);
+            border: 2px solid #888;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #333;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .time-adjust-btn:active {
+            background: #777;
+            transform: scale(0.95);
+        }
+
+        .timer-btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: clamp(2px, 0.5vh, 8px);
+        }
+
+        .timer-btn {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            font-weight: bold;
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: clamp(4px, 0.8vh, 8px) clamp(15px, 3vw, 28px);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-start {
+            background: #18a83a;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #f08a24;
+            color: white;
+        }
+
+        .timer-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* =========================
+           스코어보드
+           ========================= */
+
+        .scoreboard {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+        }
+
+        .team {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .team-a {
+            background: #111;
+            border-right: 2px solid #555;
+        }
+
+        .team-b {
+            background: #eeeeee;
+            border-left: 2px solid #555;
+            color: #111;
+        }
+
+        /* =========================
+           팀 이름
+           ========================= */
+
+        .team-title {
+            position: absolute;
+            top: clamp(5px, 1.5vh, 15px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(1.2rem, 4vw, 3rem);
+            font-weight: bold;
+            font-family: system-ui, -apple-system, sans-serif;
+            letter-spacing: 2px;
+            opacity: 0.95;
+            z-index: 2;
+        }
+
+        /* =========================
+           점수
+           ========================= */
+
+        .score {
+            font-size: clamp(8rem, 65vh, 48rem);
+            font-weight: bold;
+            font-family: 'Consolas', 'Courier New', monospace;
+            line-height: 0.8;
+            margin: 0;
+            padding: 0;
+            z-index: 1;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+
+        .team-a .score {
+            color: #ffffff;
+        }
+
+        .team-b .score {
+            color: #111111;
+            text-shadow: 0 4px 15px rgba(255,255,255,0.3);
+        }
+
+        /* =========================
+           점수 조절 버튼
+           ========================= */
+
+        .score-ctrls {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+
+            width: clamp(55px, 8vw, 100px);
+            height: min(52vh, 52vw);
+
+            min-height: 110px;
+            max-height: 380px;
+
+            display: flex;
+            flex-direction: column;
+
+            z-index: 3;
+        }
+
+        .team-a .score-ctrls {
+            left: 0;
+        }
+
+        .team-b .score-ctrls {
+            right: 0;
+        }
+
+        .score-btn {
+            flex: 1 1 50%;
+            width: 100%;
+            height: 50%;
+
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: bold;
+            font-family: 'Consolas', 'Courier New', monospace;
+
+            border: none;
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            outline: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .score-btn.btn-plus {
+            border-bottom: 2px solid rgba(128,128,128,0.5);
+        }
+
+        .team-a .btn-plus {
+            background: #333;
+            color: #fff;
+        }
+
+        .team-a .btn-minus {
+            background: #1c1c1c;
+            color: #fff;
+        }
+
+        .team-b .btn-plus {
+            background: #cccccc;
+            color: #111;
+        }
+
+        .team-b .btn-minus {
+            background: #aaaaaa;
+            color: #111;
+        }
+
+        .score-btn:active {
+            filter: brightness(1.4);
+            transform: scale(0.95);
+        }
+
+        /* =========================
+           점수 0 초기화 버튼
+           ========================= */
+
+        .score-reset-btn {
+            position: absolute;
+            bottom: clamp(5px, 1.5vh, 10px);
+
+            width: clamp(55px, 8vw, 100px);
+            height: clamp(35px, 7vh, 55px);
+
+            border: none;
+            border-radius: 8px;
+
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: bold;
+            font-family: 'Consolas', 'Courier New', monospace;
+
+            cursor: pointer;
+            z-index: 4;
+        }
+
+        .team-a .score-reset-btn {
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+        }
+
+        .team-b .score-reset-btn {
+            left: 50%;
+            transform: translateX(-50%);
+            background: #cccccc;
+            color: #111;
+        }
+
+        .score-reset-btn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        /* =========================
+           스마트폰 가로모드
+           ========================= */
+
+        @media (orientation: landscape) and (max-height: 500px) {
+
+            .timer-board {
+                padding: 3px 10px;
+            }
+
+            .timer-ctrl-wrapper {
+                gap: 8px;
+            }
+
+            .time-display {
+                font-size: min(20vw, 16vh);
+                line-height: 0.8;
+                letter-spacing: 2px;
+            }
+
+            .time-adjust-btn {
+                font-size: min(5vw, 7vh);
+                padding: 2px 8px;
+                border-radius: 6px;
+            }
+
+            .timer-btn-group {
+                gap: 8px;
+                margin-top: 2px;
+            }
+
+            .timer-btn {
+                font-size: min(2.5vw, 3.5vh);
+                padding: 3px 16px;
+                border-radius: 5px;
+            }
+
+            .team-title {
+                top: 4px;
+                font-size: min(4vw, 5vh);
+            }
+
+            .score {
+                font-size: min(65vh, 28vw);
+                line-height: 0.8;
+            }
+
+            .score-ctrls {
+                width: min(10vw, 55px);
+                height: min(42vh, 42vw);
+                min-height: 90px;
+                max-height: 190px;
+            }
+
+            .score-btn {
+                font-size: min(5vw, 7vh);
+            }
+
+            .score-reset-btn {
+                width: min(10vw, 55px);
+                height: min(7vh, 35px);
+                bottom: 4px;
+                font-size: min(3vw, 4vh);
+                border-radius: 5px;
+            }
+        }
+
+        /* =========================
+           매우 작은 가로 화면
+           ========================= */
+
+        @media (orientation: landscape) and (max-height: 380px) {
+
+            .timer-board {
+                padding: 2px 6px;
+            }
+
+            .time-display {
+                font-size: min(18vw, 15vh);
+            }
+
+            .time-adjust-btn {
+                font-size: min(4.5vw, 6vh);
+                padding: 1px 6px;
+            }
+
+            .timer-btn {
+                font-size: min(2.2vw, 3vh);
+                padding: 2px 12px;
+            }
+
+            .team-title {
+                font-size: min(3.5vw, 4vh);
+            }
+
+            .score {
+                font-size: min(60vh, 25vw);
+            }
+
+            .score-ctrls {
+                width: 48px;
+                height: 35vh;
+                min-height: 80px;
+            }
+
+            .score-btn {
+                font-size: min(4.5vw, 6vh);
+            }
+
+            .score-reset-btn {
+                width: 48px;
+                height: 28px;
+                font-size: min(2.5vw, 3.5vh);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="timer-board">
+
+        <div class="timer-ctrl-wrapper">
+
+            <button
+                class="time-adjust-btn"
+                onclick="adjustTime(-60)"
+            >
+                -1m
+            </button>
+
+            <div
+                class="time-display"
+                id="timeDisplay"
+            >
+                10:00
+            </div>
+
+            <button
+                class="time-adjust-btn"
+                onclick="adjustTime(60)"
+            >
+                +1m
+            </button>
+
+        </div>
+
+        <div class="timer-btn-group">
+
+            <button
+                class="timer-btn btn-start"
+                id="startBtn"
+                onclick="toggleTimer()"
+            >
+                시작
+            </button>
+
+            <button
+                class="timer-btn btn-reset"
+                onclick="resetTimer()"
+            >
+                리셋
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="scoreboard">
+
+        <div class="team team-a">
+
+            <div class="team-title">
+                HOME
+            </div>
+
+            <div
+                class="score"
+                id="scoreA"
+            >
+                0
+            </div>
+
+            <div class="score-ctrls">
+
+                <button
+                    class="score-btn btn-plus"
+                    onclick="changeScore('A', 1)"
+                >
+                    +
+                </button>
+
+                <button
+                    class="score-btn btn-minus"
+                    onclick="changeScore('A', -1)"
+                >
+                    -
+                </button>
+
+            </div>
+
+            <button
+                class="score-reset-btn"
+                onclick="resetScore('A')"
+            >
+                0
+            </button>
+
+        </div>
+
+
+        <div class="team team-b">
+
+            <div class="team-title">
+                AWAY
+            </div>
+
+            <div
+                class="score"
+                id="scoreB"
+            >
+                0
+            </div>
+
+            <div class="score-ctrls">
+
+                <button
+                    class="score-btn btn-plus"
+                    onclick="changeScore('B', 1)"
+                >
+                    +
+                </button>
+
+                <button
+                    class="score-btn btn-minus"
+                    onclick="changeScore('B', -1)"
+                >
+                    -
+                </button>
+
+            </div>
+
+            <button
+                class="score-reset-btn"
+                onclick="resetScore('B')"
+            >
+                0
+            </button>
+
+        </div>
+
+    </div>
+
+    <audio id="sound10s" preload="auto" src="./10s.mp3"></audio>
+    <audio id="soundEnd" preload="auto" src="./end.mp3"></audio>
+
+    <script>
+
+        let scoreA = 0;
+        let scoreB = 0;
+
+        let totalSeconds = 360;
+        let initialSeconds = 360;
+
+        let timerInterval = null;
+        let isRunning = false;
+        const sound10s = document.getElementById("sound10s");
+        const soundEnd = document.getElementById("soundEnd");
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playClapSound() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            const strikes = [
+                0,
+                0.12,
+                0.24,
+                0.36,
+                0.48,
+                0.72,
+                0.96,
+                1.20,
+                1.44
+            ];
+
+            strikes.forEach((delay) => {
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+
+                osc.type = 'triangle';
+
+                osc.frequency.setValueAtTime(
+                    1100,
+                    now + delay
+                );
+
+                osc.frequency.exponentialRampToValueAtTime(
+                    180,
+                    now + delay + 0.055
+                );
+
+                filter.type = 'highpass';
+
+                filter.frequency.setValueAtTime(
+                    350,
+                    now + delay
+                );
+
+                gain.gain.setValueAtTime(
+                    0.95,
+                    now + delay
+                );
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.001,
+                    now + delay + 0.07
+                );
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + delay);
+
+                osc.stop(
+                    now + delay + 0.08
+                );
+
+            });
+        }
+
+        function playBuzzerSound() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc1.type = 'sawtooth';
+            osc2.type = 'square';
+
+            osc1.frequency.setValueAtTime(
+                110,
+                now
+            );
+
+            osc2.frequency.setValueAtTime(
+                146.83,
+                now
+            );
+
+            gain.gain.setValueAtTime(
+                1.0,
+                now
+            );
+
+            gain.gain.setValueAtTime(
+                1.0,
+                now + 5.5
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                now + 6.0
+            );
+
+            osc1.connect(gain);
+            osc2.connect(gain);
+
+            gain.connect(audioCtx.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+
+            osc1.stop(now + 6.0);
+            osc2.stop(now + 6.0);
+        }
+
+        function play10sSound() {
+            if (sound10s && sound10s.readyState >= 2) {
+                sound10s.pause();
+                sound10s.currentTime = 0;
+                const p = sound10s.play();
+                if (p !== undefined) {
+                    p.catch(() => playClapSound());
+                }
+            } else {
+                playClapSound();
+            }
+        }
+
+        function playEndSound() {
+            if (soundEnd && soundEnd.readyState >= 2) {
+                soundEnd.pause();
+                soundEnd.currentTime = 0;
+                const p = soundEnd.play();
+                if (p !== undefined) {
+                    p.catch(() => playBuzzerSound());
+                }
+            } else {
+                playBuzzerSound();
+            }
+        }
+
+        function updateDisplay() {
+
+            const min =
+                String(
+                    Math.floor(totalSeconds / 60)
+                ).padStart(2, '0');
+
+            const sec =
+                String(
+                    totalSeconds % 60
+                ).padStart(2, '0');
+
+            document.getElementById(
+                'timeDisplay'
+            ).innerText =
+                `${min}:${sec}`;
+
+        }
+
+        function adjustTime(seconds) {
+
+            if (isRunning) {
+                return;
+            }
+
+            totalSeconds =
+                Math.max(
+                    0,
+                    totalSeconds + seconds
+                );
+
+            initialSeconds =
+                totalSeconds;
+
+            updateDisplay();
+
+        }
+
+        function toggleTimer() {
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (isRunning) {
+
+                clearInterval(timerInterval);
+
+                document.getElementById(
+                    'startBtn'
+                ).innerText =
+                    "일시정지 중";
+
+                document.getElementById(
+                    'startBtn'
+                ).style.background =
+                    "#15952f";
+
+            } else {
+
+                if (totalSeconds <= 0) {
+                    return;
+                }
+
+                timerInterval =
+                    setInterval(() => {
+
+                        if (totalSeconds > 0) {
+
+                            totalSeconds--;
+
+                            updateDisplay();
+
+                            if (totalSeconds === 10) {
+                                play10sSound();
+                            }
+
+                        } else {
+
+                            clearInterval(timerInterval);
+
+                            playEndSound();
+
+                            isRunning = false;
+
+                            document.getElementById(
+                                'startBtn'
+                            ).innerText =
+                                "시작";
+
+                            document.getElementById(
+                                'startBtn'
+                            ).style.background =
+                                "#18a83a";
+
+                        }
+
+                    }, 1000);
+
+                document.getElementById(
+                    'startBtn'
+                ).innerText =
+                    "정지";
+
+                document.getElementById(
+                    'startBtn'
+                ).style.background =
+                    "#18a83a";
+
+            }
+
+            isRunning = !isRunning;
+
+        }
+
+        function resetTimer() {
+
+            clearInterval(timerInterval);
+
+            isRunning = false;
+
+            totalSeconds =
+                initialSeconds;
+            sound10s.pause();
+            sound10s.currentTime = 0;
+
+            soundEnd.pause();
+            soundEnd.currentTime = 0;
+            updateDisplay();
+
+            document.getElementById(
+                'startBtn'
+            ).innerText =
+                "시작";
+
+            document.getElementById(
+                'startBtn'
+            ).style.background =
+                "#18a83a";
+
+        }
+
+        function changeScore(team, val) {
+
+            if (team === 'A') {
+
+                scoreA =
+                    Math.max(
+                        0,
+                        scoreA + val
+                    );
+
+                document.getElementById(
+                    'scoreA'
+                ).innerText =
+                    scoreA;
+
+            } else {
+
+                scoreB =
+                    Math.max(
+                        0,
+                        scoreB + val
+                    );
+
+                document.getElementById(
+                    'scoreB'
+                ).innerText =
+                    scoreB;
+
+            }
+
+        }
+
+        function resetScore(team) {
+
+            if (team === 'A') {
+
+                scoreA = 0;
+
+                document.getElementById(
+                    'scoreA'
+                ).innerText =
+                    '0';
+
+            } else {
+
+                scoreB = 0;
+
+                document.getElementById(
+                    'scoreB'
+                ).innerText =
+                    '0';
+
+            }
+
+        }
+
+        window.addEventListener("load", () => {
+            updateDisplay();
+        });
+    </script>
+
+</body>
+</html>
