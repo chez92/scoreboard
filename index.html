@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>chez의 점수판</title>
+    <title>풋살 전광판</title>
 
     <style>
         * {
@@ -903,6 +903,74 @@
 
             }
 
+            updateDisplay();
+
+        }
+
+
+        function toggleTimer() {
+
+            if (isRunning) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                isRunning = false;
+                document.getElementById('startBtn').innerText = '시작';
+                return;
+            }
+
+            if (totalSeconds <= 0) {
+                return;
+            }
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isRunning = true;
+            document.getElementById('startBtn').innerText = '정지';
+
+            timerInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updateDisplay();
+
+                    // 풋살: 10초 전 / 축구: 1분 전
+                    const warningTime = isSoccerMode ? 60 : 10;
+
+                    if (totalSeconds === warningTime) {
+                        sound10s.currentTime = 0;
+                        sound10s.play().catch(() => playClapSound());
+                    }
+
+                    if (totalSeconds === 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        isRunning = false;
+                        document.getElementById('startBtn').innerText = '시작';
+
+                        soundEnd.currentTime = 0;
+                        soundEnd.play().catch(() => playBuzzerSound());
+                    }
+                }
+            }, 1000);
+
+        }
+
+
+        function resetTimer() {
+
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isRunning = false;
+
+            totalSeconds = initialSeconds;
+
+            sound10s.pause();
+            sound10s.currentTime = 0;
+            soundEnd.pause();
+            soundEnd.currentTime = 0;
+
+            document.getElementById('startBtn').innerText = '시작';
             updateDisplay();
 
         }
