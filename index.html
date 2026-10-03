@@ -74,13 +74,31 @@
             transform: scale(0.95);
         }
 
+        @media (max-width: 600px) {
+            .mode-switch {
+                left: 0;
+                right: 0;
+                transform: none;
+                justify-content: space-between;
+                width: 100%;
+                padding: 0 12px;
+            }
+        }
+
         .timer-ctrl-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 0;
+        }
+
+        .time-display-row {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: clamp(6px, 1.5vw, 20px);
             width: 100%;
-            min-height: 0;
         }
 
         .time-display {
@@ -94,16 +112,26 @@
         }
 
         .time-adjust-btn {
-            font-size: clamp(1.5rem, 5vw, 5rem);
+            position: absolute;
+            bottom: 2px;
+            font-size: clamp(1rem, 3.2vw, 2.2rem);
             font-weight: bold;
             font-family: 'Consolas', 'Courier New', monospace;
-            padding: clamp(4px, 1vh, 12px) clamp(8px, 1.5vw, 20px);
+            padding: clamp(3px, 0.6vh, 7px) clamp(8px, 1.5vw, 16px);
             border: 2px solid #888;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             background: #333;
             color: #fff;
-            flex-shrink: 0;
+            z-index: 3;
+        }
+
+        #minusTimeBtn {
+            left: 12px;
+        }
+
+        #plusTimeBtn {
+            right: 12px;
         }
 
         .time-adjust-btn:active {
@@ -360,6 +388,10 @@
             }
 
             .timer-ctrl-wrapper {
+                gap: 2px;
+            }
+
+            .time-display-row {
                 gap: 8px;
             }
 
@@ -370,7 +402,7 @@
             }
 
             .time-adjust-btn {
-                font-size: min(5vw, 7vh);
+                font-size: min(3vw, 4vh);
                 padding: 2px 8px;
                 border-radius: 6px;
             }
@@ -442,7 +474,7 @@
             }
 
             .time-adjust-btn {
-                font-size: min(4.5vw, 6vh);
+                font-size: min(3vw, 4vh);
                 padding: 1px 6px;
             }
 
@@ -500,30 +532,28 @@
 
         <div class="timer-ctrl-wrapper">
 
-            <button
-                class="time-adjust-btn"
-                id="minusTimeBtn"
-                onclick="adjustTime(isSoccerMode ? -300 : -60)"
-            >
-                -1m
-            </button>
-
-            <div
-                class="time-display"
-                id="timeDisplay"
-            >
-                06:00
+            <div class="time-display-row">
+                <div
+                    class="time-display"
+                    id="timeDisplay"
+                >
+                    06:00
+                </div>
             </div>
 
-            <button
-                class="time-adjust-btn"
-                id="plusTimeBtn"
-                onclick="adjustTime(isSoccerMode ? 300 : 60)"
-            >
-                +1m
-            </button>
-
         </div>
+
+        <button
+            class="time-adjust-btn"
+            id="minusTimeBtn"
+            onclick="adjustTime(isSoccerMode ? -300 : -60)"
+        >-1m</button>
+
+        <button
+            class="time-adjust-btn"
+            id="plusTimeBtn"
+            onclick="adjustTime(isSoccerMode ? 300 : 60)"
+        >+1m</button>
 
         <div class="timer-btn-group">
 
