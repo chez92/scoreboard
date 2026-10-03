@@ -48,11 +48,12 @@
         .mode-switch {
             position: absolute;
             top: clamp(4px, 0.8vh, 8px);
-            left: 50%;
-            transform: translateX(-50%);
+            left: 16px;
+            right: 16px;
+            width: auto;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             font-size: clamp(1rem, 2.8vw, 1.5rem);
             font-weight: bold;
             font-family: system-ui, -apple-system, sans-serif;
@@ -76,12 +77,10 @@
 
         @media (max-width: 600px) {
             .mode-switch {
-                left: 0;
-                right: 0;
-                transform: none;
-                justify-content: space-between;
-                width: 100%;
-                padding: 0 12px;
+                left: 12px;
+                right: 12px;
+                width: auto;
+                padding: 0;
             }
         }
 
@@ -127,11 +126,11 @@
         }
 
         #minusTimeBtn {
-            left: 12px;
+            left: 22.5%;
         }
 
         #plusTimeBtn {
-            right: 12px;
+            right: 22.5%;
         }
 
         .time-adjust-btn:active {
@@ -460,6 +459,19 @@
 
             .timer-board {
                 padding: 2px 6px;
+            }
+
+            .mode-switch {
+                left: 12px;
+                right: 12px;
+            }
+
+            #minusTimeBtn {
+                left: 22.5%;
+            }
+
+            #plusTimeBtn {
+                right: 22.5%;
             }
 
             .soccer-mode-btn {
