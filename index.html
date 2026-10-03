@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>풋살 전광판</title>
+    <title>chez의 점수판</title>
 
     <style>
         * {
@@ -33,6 +33,7 @@
            ========================= */
 
         .timer-board {
+            position: relative;
             text-align: center;
             padding: clamp(3px, 0.8vh, 10px) 15px;
             background: #181818;
@@ -42,6 +43,35 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+        }
+
+        .mode-switch {
+            position: absolute;
+            top: clamp(4px, 0.8vh, 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1rem, 2.8vw, 1.5rem);
+            font-weight: bold;
+            font-family: system-ui, -apple-system, sans-serif;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        .mode-switch span {
+            cursor: pointer;
+            padding: 2px 5px;
+            color: #888;
+        }
+
+        .mode-switch span.active {
+            color: #fff;
+        }
+
+        .mode-switch span:active {
+            transform: scale(0.95);
         }
 
         .timer-ctrl-wrapper {
@@ -195,6 +225,12 @@
             transform: translateY(-50%);
 
             width: clamp(55px, 8vw, 100px);
+
+            /*
+             * Galaxy S10 가로모드(약 760 x 360)에서도
+             * 점수와 버튼이 화면 밖으로 나가지 않도록
+             * 화면 높이에 비례하여 자동 축소
+             */
             height: min(52vh, 52vw);
 
             min-height: 110px;
@@ -306,12 +342,21 @@
 
         /* =========================
            스마트폰 가로모드
+           Galaxy S10 기준
            ========================= */
 
         @media (orientation: landscape) and (max-height: 500px) {
 
             .timer-board {
                 padding: 3px 10px;
+            }
+
+            .soccer-mode-btn {
+                top: 3px;
+                right: 5px;
+                font-size: min(2.5vw, 3.5vh);
+                padding: 3px 8px;
+                border-radius: 5px;
             }
 
             .timer-ctrl-wrapper {
@@ -347,6 +392,10 @@
             }
 
             .score {
+                /*
+                 * Galaxy S10 가로모드 화면 높이 약 360px 기준
+                 * 타이머 영역을 제외하고 점수가 화면에 들어오도록 조정
+                 */
                 font-size: min(65vh, 28vw);
                 line-height: 0.8;
             }
@@ -378,6 +427,13 @@
         @media (orientation: landscape) and (max-height: 380px) {
 
             .timer-board {
+                padding: 2px 6px;
+            }
+
+            .soccer-mode-btn {
+                top: 2px;
+                right: 4px;
+                font-size: min(2.2vw, 3vh);
                 padding: 2px 6px;
             }
 
@@ -426,11 +482,28 @@
 
     <div class="timer-board">
 
+        <div class="mode-switch">
+            <span
+                id="futsalModeText"
+                class="active"
+                onclick="setGameMode(false)"
+            >풋살</span>
+            <span
+                id="modeArrow"
+                onclick="toggleGameMode()"
+            >←</span>
+            <span
+                id="soccerModeText"
+                onclick="setGameMode(true)"
+            >축구</span>
+        </div>
+
         <div class="timer-ctrl-wrapper">
 
             <button
                 class="time-adjust-btn"
-                onclick="adjustTime(-60)"
+                id="minusTimeBtn"
+                onclick="adjustTime(isSoccerMode ? -300 : -60)"
             >
                 -1m
             </button>
@@ -439,12 +512,13 @@
                 class="time-display"
                 id="timeDisplay"
             >
-                10:00
+                06:00
             </div>
 
             <button
                 class="time-adjust-btn"
-                onclick="adjustTime(60)"
+                id="plusTimeBtn"
+                onclick="adjustTime(isSoccerMode ? 300 : 60)"
             >
                 +1m
             </button>
@@ -557,7 +631,6 @@
         </div>
 
     </div>
-
     <audio id="sound10s" preload="auto" src="./10s.mp3"></audio>
     <audio id="soundEnd" preload="auto" src="./end.mp3"></audio>
 
@@ -571,12 +644,16 @@
 
         let timerInterval = null;
         let isRunning = false;
+        let isSoccerMode = false;
         const sound10s = document.getElementById("sound10s");
         const soundEnd = document.getElementById("soundEnd");
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioCtx =
+            new (window.AudioContext || window.webkitAudioContext)();
+
 
         function playClapSound() {
+
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
@@ -597,9 +674,14 @@
 
             strikes.forEach((delay) => {
 
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                const filter = audioCtx.createBiquadFilter();
+                const osc =
+                    audioCtx.createOscillator();
+
+                const gain =
+                    audioCtx.createGain();
+
+                const filter =
+                    audioCtx.createBiquadFilter();
 
                 osc.type = 'triangle';
 
@@ -641,18 +723,26 @@
                 );
 
             });
+
         }
 
+
         function playBuzzerSound() {
+
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
 
             const now = audioCtx.currentTime;
 
-            const osc1 = audioCtx.createOscillator();
-            const osc2 = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const osc1 =
+                audioCtx.createOscillator();
+
+            const osc2 =
+                audioCtx.createOscillator();
+
+            const gain =
+                audioCtx.createGain();
 
             osc1.type = 'sawtooth';
             osc2.type = 'square';
@@ -692,33 +782,9 @@
 
             osc1.stop(now + 6.0);
             osc2.stop(now + 6.0);
+
         }
 
-        function play10sSound() {
-            if (sound10s && sound10s.readyState >= 2) {
-                sound10s.pause();
-                sound10s.currentTime = 0;
-                const p = sound10s.play();
-                if (p !== undefined) {
-                    p.catch(() => playClapSound());
-                }
-            } else {
-                playClapSound();
-            }
-        }
-
-        function playEndSound() {
-            if (soundEnd && soundEnd.readyState >= 2) {
-                soundEnd.pause();
-                soundEnd.currentTime = 0;
-                const p = soundEnd.play();
-                if (p !== undefined) {
-                    p.catch(() => playBuzzerSound());
-                }
-            } else {
-                playBuzzerSound();
-            }
-        }
 
         function updateDisplay() {
 
@@ -739,6 +805,7 @@
 
         }
 
+
         function adjustTime(seconds) {
 
             if (isRunning) {
@@ -758,109 +825,46 @@
 
         }
 
-        function toggleTimer() {
 
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+        function toggleGameMode() {
+            setGameMode(!isSoccerMode);
+        }
+
+
+        function setGameMode(soccer) {
 
             if (isRunning) {
+                return;
+            }
 
-                clearInterval(timerInterval);
+            isSoccerMode = soccer;
 
-                document.getElementById(
-                    'startBtn'
-                ).innerText =
-                    "일시정지 중";
+            document.getElementById('futsalModeText').classList.toggle('active', !soccer);
+            document.getElementById('soccerModeText').classList.toggle('active', soccer);
+            document.getElementById('modeArrow').innerText = soccer ? '→' : '←';
 
-                document.getElementById(
-                    'startBtn'
-                ).style.background =
-                    "#15952f";
+            if (isSoccerMode) {
+
+                totalSeconds = 25 * 60;
+                initialSeconds = totalSeconds;
+
+                document.getElementById('minusTimeBtn').innerText = '-5m';
+                document.getElementById('plusTimeBtn').innerText = '+5m';
 
             } else {
 
-                if (totalSeconds <= 0) {
-                    return;
-                }
+                totalSeconds = 6 * 60;
+                initialSeconds = totalSeconds;
 
-                timerInterval =
-                    setInterval(() => {
-
-                        if (totalSeconds > 0) {
-
-                            totalSeconds--;
-
-                            updateDisplay();
-
-                            if (totalSeconds === 10) {
-                                play10sSound();
-                            }
-
-                        } else {
-
-                            clearInterval(timerInterval);
-
-                            playEndSound();
-
-                            isRunning = false;
-
-                            document.getElementById(
-                                'startBtn'
-                            ).innerText =
-                                "시작";
-
-                            document.getElementById(
-                                'startBtn'
-                            ).style.background =
-                                "#18a83a";
-
-                        }
-
-                    }, 1000);
-
-                document.getElementById(
-                    'startBtn'
-                ).innerText =
-                    "정지";
-
-                document.getElementById(
-                    'startBtn'
-                ).style.background =
-                    "#18a83a";
+                document.getElementById('minusTimeBtn').innerText = '-1m';
+                document.getElementById('plusTimeBtn').innerText = '+1m';
 
             }
 
-            isRunning = !isRunning;
-
-        }
-
-        function resetTimer() {
-
-            clearInterval(timerInterval);
-
-            isRunning = false;
-
-            totalSeconds =
-                initialSeconds;
-            sound10s.pause();
-            sound10s.currentTime = 0;
-
-            soundEnd.pause();
-            soundEnd.currentTime = 0;
             updateDisplay();
 
-            document.getElementById(
-                'startBtn'
-            ).innerText =
-                "시작";
-
-            document.getElementById(
-                'startBtn'
-            ).style.background =
-                "#18a83a";
-
         }
+
 
         function changeScore(team, val) {
 
@@ -894,6 +898,7 @@
 
         }
 
+
         function resetScore(team) {
 
             if (team === 'A') {
@@ -917,10 +922,9 @@
             }
 
         }
-
         window.addEventListener("load", () => {
-            updateDisplay();
-        });
+    updateDisplay();
+});
     </script>
 
 </body>
