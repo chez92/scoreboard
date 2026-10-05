@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>chez의 점수판</title>
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
     <style>
         * {
@@ -75,15 +81,6 @@
             transform: scale(0.95);
         }
 
-        @media (max-width: 600px) {
-            .mode-switch {
-                left: 12px;
-                right: 12px;
-                width: auto;
-                padding: 0;
-            }
-        }
-
         .timer-ctrl-wrapper {
             display: flex;
             flex-direction: column;
@@ -110,42 +107,17 @@
             text-shadow: 0 0 15px rgba(255,255,255,0.2);
         }
 
-        .time-adjust-btn {
-            position: absolute;
-            bottom: 2px;
-            font-size: clamp(1rem, 3.2vw, 2.2rem);
-            font-weight: bold;
-            font-family: 'Consolas', 'Courier New', monospace;
-            padding: clamp(3px, 0.6vh, 7px) clamp(8px, 1.5vw, 16px);
-            border: 2px solid #888;
-            border-radius: 8px;
-            cursor: pointer;
-            background: #333;
-            color: #fff;
-            z-index: 3;
-        }
-
-        #minusTimeBtn {
-            left: 22.5%;
-        }
-
-        #plusTimeBtn {
-            right: 22.5%;
-        }
-
-        .time-adjust-btn:active {
-            background: #777;
-            transform: scale(0.95);
-        }
-
         .timer-btn-group {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            width: 96vw;
+            max-width: 620px;
+            gap: 5px;
             margin-top: clamp(2px, 0.5vh, 8px);
         }
 
         .timer-btn {
+            width: 100%;
             font-size: clamp(1rem, 2.5vw, 1.3rem);
             font-weight: bold;
             font-family: system-ui, -apple-system, sans-serif;
@@ -153,6 +125,14 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .time-minus,
+        .time-plus {
+            background: #333;
+            border: 2px solid #666;
+            color: #fff;
         }
 
         .btn-start {
@@ -183,11 +163,13 @@
         .team {
             flex: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             position: relative;
             min-width: 0;
             min-height: 0;
+            overflow: hidden;
         }
 
         .team-a {
@@ -206,10 +188,11 @@
            ========================= */
 
         .team-title {
-            position: absolute;
-            top: clamp(5px, 1.5vh, 15px);
-            left: 50%;
-            transform: translateX(-50%);
+            flex: 0 0 auto;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: clamp(1.2rem, 4vw, 3rem);
             font-weight: bold;
             font-family: system-ui, -apple-system, sans-serif;
@@ -223,6 +206,12 @@
            ========================= */
 
         .score {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: clamp(8rem, 65vh, 48rem);
             font-weight: bold;
             font-family: 'Consolas', 'Courier New', monospace;
@@ -231,6 +220,8 @@
             padding: 0;
             z-index: 1;
             text-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            overflow: hidden;
+            white-space: nowrap;
         }
 
         .team-a .score {
@@ -242,212 +233,257 @@
             text-shadow: 0 4px 15px rgba(255,255,255,0.3);
         }
 
+        .score.two-digit {
+            font-size: min(40vw, 38vh);
+            letter-spacing: -4px;
+        }
+
+        .score.three-digit {
+            font-size: min(27vw, 30vh);
+            letter-spacing: -5px;
+        }
+
+        .score.four-digit {
+            font-size: min(20vw, 24vh);
+            letter-spacing: -6px;
+        }
+
         /* =========================
            점수 조절 버튼
            ========================= */
 
         .score-ctrls {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-
-            width: clamp(55px, 8vw, 100px);
-
-            /*
-             * Galaxy S10 가로모드(약 760 x 360)에서도
-             * 점수와 버튼이 화면 밖으로 나가지 않도록
-             * 화면 높이에 비례하여 자동 축소
-             */
-            height: min(52vh, 52vw);
-
-            min-height: 110px;
-            max-height: 380px;
-
-            display: flex;
-            flex-direction: column;
-
-            z-index: 3;
-        }
-
-        .team-a .score-ctrls {
-            left: 0;
-        }
-
-        .team-b .score-ctrls {
-            right: 0;
+            flex: 0 0 auto;
+            width: 82%;
+            height: 56px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: 9px;
+            z-index: 5;
         }
 
         .score-btn {
-            flex: 1 1 50%;
             width: 100%;
-            height: 50%;
-
-            font-size: clamp(2rem, 5vw, 4rem);
+            height: 100%;
+            border: none;
+            border-radius: 7px;
+            font-size: clamp(1.4rem, 6vw, 2.5rem);
             font-weight: bold;
             font-family: 'Consolas', 'Courier New', monospace;
-
-            border: none;
             cursor: pointer;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             outline: none;
             padding: 0;
             margin: 0;
         }
 
-        .score-btn.btn-plus {
-            border-bottom: 2px solid rgba(128,128,128,0.5);
-        }
-
-        .team-a .btn-plus {
+        .team-a .btn-plus,
+        .team-a .btn-minus {
             background: #333;
             color: #fff;
         }
 
         .team-a .btn-minus {
             background: #1c1c1c;
+        }
+
+        .team-a .score-reset-btn {
+            background: #333;
             color: #fff;
         }
 
-        .team-b .btn-plus {
+        .team-b .btn-plus,
+        .team-b .btn-minus {
             background: #cccccc;
             color: #111;
         }
 
         .team-b .btn-minus {
             background: #aaaaaa;
+        }
+
+        .team-b .score-reset-btn {
+            background: #cccccc;
             color: #111;
         }
 
-        .score-btn:active {
+        .score-btn:active,
+        .score-reset-btn:active {
             filter: brightness(1.4);
             transform: scale(0.95);
         }
 
         /* =========================
-           점수 0 초기화 버튼
+           모바일 세로모드
            ========================= */
 
-        .score-reset-btn {
-            position: absolute;
-            bottom: clamp(5px, 1.5vh, 10px);
+        @media (max-width: 600px) and (orientation: portrait) {
 
-            width: clamp(55px, 8vw, 100px);
-            height: clamp(35px, 7vh, 55px);
+            .timer-board {
+                min-height: 205px;
+                padding: 8px 10px 10px;
+            }
 
-            border: none;
-            border-radius: 8px;
+            .mode-switch {
+                top: 7px;
+                left: 12px;
+                right: 12px;
+            }
 
-            font-size: clamp(1.2rem, 3vw, 1.8rem);
-            font-weight: bold;
-            font-family: 'Consolas', 'Courier New', monospace;
+            .timer-ctrl-wrapper {
+                padding-top: 24px;
+            }
 
-            cursor: pointer;
-            z-index: 4;
-        }
+            .time-display {
+                font-size: min(34vw, 13rem);
+                line-height: 0.82;
+                letter-spacing: 2px;
+            }
 
-        .team-a .score-reset-btn {
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: #fff;
-        }
+            .timer-btn-group {
+                width: 94vw;
+                gap: 5px;
+                margin-top: 8px;
+            }
 
-        .team-b .score-reset-btn {
-            left: 50%;
-            transform: translateX(-50%);
-            background: #cccccc;
-            color: #111;
-        }
+            .timer-btn {
+                font-size: clamp(0.9rem, 4vw, 1.2rem);
+                padding: 7px 8px;
+                border-radius: 7px;
+            }
 
-        .score-reset-btn:active {
-            transform: translateX(-50%) scale(0.95);
+            .team-title {
+                height: 38px;
+                font-size: clamp(1rem, 4vw, 1.4rem);
+            }
+
+            .score {
+                font-size: min(65vh, 70vw);
+            }
+
+            .score.two-digit {
+                font-size: min(40vw, 34vh);
+                letter-spacing: -4px;
+            }
+
+            .score.three-digit {
+                font-size: min(27vw, 28vh);
+                letter-spacing: -5px;
+            }
+
+            .score.four-digit {
+                font-size: min(20vw, 22vh);
+                letter-spacing: -6px;
+            }
+
+            .score-ctrls {
+                width: 82%;
+                height: 50px;
+                margin-bottom: 8px;
+                gap: 4px;
+            }
+
+            .score-btn {
+                font-size: clamp(1.3rem, 6vw, 2rem);
+            }
         }
 
         /* =========================
-           스마트폰 가로모드
-           Galaxy S10 기준
+           모바일 가로모드
            ========================= */
 
         @media (orientation: landscape) and (max-height: 500px) {
 
             .timer-board {
-                padding: 3px 10px;
+                min-height: 135px;
+                height: 135px;
+                padding: 2px 8px 5px;
+                justify-content: flex-start;
             }
 
-            .soccer-mode-btn {
-                top: 3px;
-                right: 5px;
-                font-size: min(2.5vw, 3.5vh);
-                padding: 3px 8px;
-                border-radius: 5px;
+            .mode-switch {
+                top: 0;
+                left: 10px;
+                right: 10px;
+                font-size: min(3vw, 1.1rem);
+                z-index: 10;
+            }
+
+            .mode-switch span {
+                padding: 0 4px;
             }
 
             .timer-ctrl-wrapper {
-                gap: 2px;
+                height: 88px;
+                padding-top: 12px;
+                justify-content: center;
+                overflow: visible;
             }
 
             .time-display-row {
-                gap: 8px;
+                height: 58px;
+                overflow: visible;
             }
 
             .time-display {
-                font-size: min(20vw, 16vh);
-                line-height: 0.8;
-                letter-spacing: 2px;
-            }
-
-            .time-adjust-btn {
-                font-size: min(3vw, 4vh);
-                padding: 2px 8px;
-                border-radius: 6px;
+                font-size: min(18vw, 15vh);
+                line-height: 0.75;
+                letter-spacing: 1px;
+                position: relative;
+                z-index: 1;
             }
 
             .timer-btn-group {
-                gap: 8px;
-                margin-top: 2px;
+                width: min(82vw, 430px);
+                gap: 5px;
+                margin-top: 0;
+                z-index: 5;
             }
 
             .timer-btn {
-                font-size: min(2.5vw, 3.5vh);
-                padding: 3px 16px;
+                font-size: min(2.3vw, 3vh);
+                padding: 3px 10px;
                 border-radius: 5px;
             }
 
             .team-title {
-                top: 4px;
+                height: 30px;
                 font-size: min(4vw, 5vh);
             }
 
             .score {
-                /*
-                 * Galaxy S10 가로모드 화면 높이 약 360px 기준
-                 * 타이머 영역을 제외하고 점수가 화면에 들어오도록 조정
-                 */
                 font-size: min(65vh, 28vw);
                 line-height: 0.8;
             }
 
+            .score.two-digit {
+                font-size: min(50vw, 40vh);
+                line-height: 0.8;
+                letter-spacing: -3px;
+            }
+
+            .score.three-digit {
+                font-size: min(13vw, 24vh);
+                letter-spacing: -4px;
+            }
+
+            .score.four-digit {
+                font-size: min(10vw, 20vh);
+                letter-spacing: -4px;
+            }
+
             .score-ctrls {
-                width: min(10vw, 55px);
-                height: min(42vh, 42vw);
-                min-height: 90px;
-                max-height: 190px;
+                width: min(42%, 220px);
+                height: min(13vh, 48px);
+                margin-bottom: 5px;
+                gap: 4px;
             }
 
             .score-btn {
                 font-size: min(5vw, 7vh);
-            }
-
-            .score-reset-btn {
-                width: min(10vw, 55px);
-                height: min(7vh, 35px);
-                bottom: 4px;
-                font-size: min(3vw, 4vh);
-                border-radius: 5px;
             }
         }
 
@@ -458,44 +494,45 @@
         @media (orientation: landscape) and (max-height: 380px) {
 
             .timer-board {
-                padding: 2px 6px;
+                min-height: 120px;
+                height: 120px;
+                padding: 1px 6px 3px;
             }
 
             .mode-switch {
-                left: 12px;
-                right: 12px;
+                top: -2px;
+                left: 8px;
+                right: 8px;
+                font-size: min(2.8vw, 1rem);
             }
 
-            #minusTimeBtn {
-                left: 22.5%;
+            .timer-ctrl-wrapper {
+                height: 78px;
+                padding-top: 8px;
             }
 
-            #plusTimeBtn {
-                right: 22.5%;
-            }
-
-            .soccer-mode-btn {
-                top: 2px;
-                right: 4px;
-                font-size: min(2.2vw, 3vh);
-                padding: 2px 6px;
+            .time-display-row {
+                height: 50px;
             }
 
             .time-display {
-                font-size: min(18vw, 15vh);
+                font-size: min(17vw, 14vh);
+                line-height: 0.7;
             }
 
-            .time-adjust-btn {
-                font-size: min(3vw, 4vh);
-                padding: 1px 6px;
+            .timer-btn-group {
+                width: min(84vw, 420px);
+                gap: 4px;
+                margin-top: 0;
             }
 
             .timer-btn {
-                font-size: min(2.2vw, 3vh);
-                padding: 2px 12px;
+                font-size: min(2.1vw, 2.8vh);
+                padding: 2px 8px;
             }
 
             .team-title {
+                height: 26px;
                 font-size: min(3.5vw, 4vh);
             }
 
@@ -503,20 +540,25 @@
                 font-size: min(60vh, 25vw);
             }
 
+            .score.two-digit {
+                font-size: min(16vw, 27vh);
+                letter-spacing: -3px;
+            }
+
+            .score.three-digit {
+                font-size: min(11vw, 22vh);
+                letter-spacing: -4px;
+            }
+
             .score-ctrls {
-                width: 48px;
-                height: 35vh;
-                min-height: 80px;
+                width: min(42%, 220px);
+                height: min(13vh, 48px);
+                margin-bottom: 5px;
+                gap: 4px;
             }
 
             .score-btn {
-                font-size: min(4.5vw, 6vh);
-            }
-
-            .score-reset-btn {
-                width: 48px;
-                height: 28px;
-                font-size: min(2.5vw, 3.5vh);
+                font-size: min(5vw, 1.8rem);
             }
         }
     </style>
@@ -532,10 +574,12 @@
                 class="active"
                 onclick="setGameMode(false)"
             >풋살</span>
+
             <span
                 id="modeArrow"
                 onclick="toggleGameMode()"
             >←</span>
+
             <span
                 id="soccerModeText"
                 onclick="setGameMode(true)"
@@ -555,39 +599,34 @@
 
         </div>
 
-        <button
-            class="time-adjust-btn"
-            id="minusTimeBtn"
-            onclick="adjustTime(isSoccerMode ? -300 : -60)"
-        >-1m</button>
-
-        <button
-            class="time-adjust-btn"
-            id="plusTimeBtn"
-            onclick="adjustTime(isSoccerMode ? 300 : 60)"
-        >+1m</button>
-
         <div class="timer-btn-group">
+
+            <button
+                class="timer-btn time-minus"
+                id="minusTimeBtn"
+                onclick="adjustTime(isSoccerMode ? -300 : -60)"
+            >-1m</button>
 
             <button
                 class="timer-btn btn-start"
                 id="startBtn"
                 onclick="toggleTimer()"
-            >
-                시작
-            </button>
+            >시작</button>
 
             <button
                 class="timer-btn btn-reset"
                 onclick="resetTimer()"
-            >
-                리셋
-            </button>
+            >리셋</button>
+
+            <button
+                class="timer-btn time-plus"
+                id="plusTimeBtn"
+                onclick="adjustTime(isSoccerMode ? 300 : 60)"
+            >+1m</button>
 
         </div>
 
     </div>
-
 
     <div class="scoreboard">
 
@@ -607,30 +646,29 @@
             <div class="score-ctrls">
 
                 <button
-                    class="score-btn btn-plus"
-                    onclick="changeScore('A', 1)"
-                >
-                    +
-                </button>
-
-                <button
                     class="score-btn btn-minus"
                     onclick="changeScore('A', -1)"
                 >
                     -
                 </button>
 
+                <button
+                    class="score-btn score-reset-btn"
+                    onclick="resetScore('A')"
+                >
+                    0
+                </button>
+
+                <button
+                    class="score-btn btn-plus"
+                    onclick="changeScore('A', 1)"
+                >
+                    +
+                </button>
+
             </div>
 
-            <button
-                class="score-reset-btn"
-                onclick="resetScore('A')"
-            >
-                0
-            </button>
-
         </div>
-
 
         <div class="team team-b">
 
@@ -648,33 +686,43 @@
             <div class="score-ctrls">
 
                 <button
-                    class="score-btn btn-plus"
-                    onclick="changeScore('B', 1)"
-                >
-                    +
-                </button>
-
-                <button
                     class="score-btn btn-minus"
                     onclick="changeScore('B', -1)"
                 >
                     -
                 </button>
 
-            </div>
+                <button
+                    class="score-btn score-reset-btn"
+                    onclick="resetScore('B')"
+                >
+                    0
+                </button>
 
-            <button
-                class="score-reset-btn"
-                onclick="resetScore('B')"
-            >
-                0
-            </button>
+                <button
+                    class="score-btn btn-plus"
+                    onclick="changeScore('B', 1)"
+                >
+                    +
+                </button>
+
+            </div>
 
         </div>
 
     </div>
-    <audio id="sound10s" preload="auto" src="./10s.mp3"></audio>
-    <audio id="soundEnd" preload="auto" src="./end.mp3"></audio>
+
+    <audio
+        id="sound10s"
+        preload="auto"
+        src="./10s.mp3"
+    ></audio>
+
+    <audio
+        id="soundEnd"
+        preload="auto"
+        src="./end.mp3"
+    ></audio>
 
     <script>
 
@@ -687,12 +735,46 @@
         let timerInterval = null;
         let isRunning = false;
         let isSoccerMode = false;
+
         const sound10s = document.getElementById("sound10s");
         const soundEnd = document.getElementById("soundEnd");
 
         const audioCtx =
             new (window.AudioContext || window.webkitAudioContext)();
 
+        function updateScoreSize(element, score) {
+
+            element.classList.remove(
+                'two-digit',
+                'three-digit',
+                'four-digit'
+            );
+
+            const digits = String(score).length;
+
+            if (digits === 2) {
+                element.classList.add('two-digit');
+            }
+            else if (digits === 3) {
+                element.classList.add('three-digit');
+            }
+            else if (digits >= 4) {
+                element.classList.add('four-digit');
+            }
+        }
+
+        function updateAllScoreSizes() {
+
+            updateScoreSize(
+                document.getElementById('scoreA'),
+                scoreA
+            );
+
+            updateScoreSize(
+                document.getElementById('scoreB'),
+                scoreB
+            );
+        }
 
         function playClapSound() {
 
@@ -768,7 +850,6 @@
 
         }
 
-
         function playBuzzerSound() {
 
             if (audioCtx.state === 'suspended') {
@@ -827,7 +908,6 @@
 
         }
 
-
         function updateDisplay() {
 
             const min =
@@ -846,7 +926,6 @@
                 `${min}:${sec}`;
 
         }
-
 
         function adjustTime(seconds) {
 
@@ -867,11 +946,9 @@
 
         }
 
-
         function toggleGameMode() {
             setGameMode(!isSoccerMode);
         }
-
 
         function setGameMode(soccer) {
 
@@ -881,25 +958,60 @@
 
             isSoccerMode = soccer;
 
-            document.getElementById('futsalModeText').classList.toggle('active', !soccer);
-            document.getElementById('soccerModeText').classList.toggle('active', soccer);
-            document.getElementById('modeArrow').innerText = soccer ? '→' : '←';
+            document.getElementById(
+                'futsalModeText'
+            ).classList.toggle(
+                'active',
+                !soccer
+            );
+
+            document.getElementById(
+                'soccerModeText'
+            ).classList.toggle(
+                'active',
+                soccer
+            );
+
+            document.getElementById(
+                'modeArrow'
+            ).innerText =
+                soccer ? '→' : '←';
 
             if (isSoccerMode) {
 
-                totalSeconds = 25 * 60;
-                initialSeconds = totalSeconds;
+                totalSeconds =
+                    25 * 60;
 
-                document.getElementById('minusTimeBtn').innerText = '-5m';
-                document.getElementById('plusTimeBtn').innerText = '+5m';
+                initialSeconds =
+                    totalSeconds;
+
+                document.getElementById(
+                    'minusTimeBtn'
+                ).innerText =
+                    '-5m';
+
+                document.getElementById(
+                    'plusTimeBtn'
+                ).innerText =
+                    '+5m';
 
             } else {
 
-                totalSeconds = 6 * 60;
-                initialSeconds = totalSeconds;
+                totalSeconds =
+                    6 * 60;
 
-                document.getElementById('minusTimeBtn').innerText = '-1m';
-                document.getElementById('plusTimeBtn').innerText = '+1m';
+                initialSeconds =
+                    totalSeconds;
+
+                document.getElementById(
+                    'minusTimeBtn'
+                ).innerText =
+                    '-1m';
+
+                document.getElementById(
+                    'plusTimeBtn'
+                ).innerText =
+                    '+1m';
 
             }
 
@@ -907,14 +1019,21 @@
 
         }
 
-
         function toggleTimer() {
 
             if (isRunning) {
+
                 clearInterval(timerInterval);
+
                 timerInterval = null;
+
                 isRunning = false;
-                document.getElementById('startBtn').innerText = '시작';
+
+                document.getElementById(
+                    'startBtn'
+                ).innerText =
+                    '시작';
+
                 return;
             }
 
@@ -927,54 +1046,94 @@
             }
 
             isRunning = true;
-            document.getElementById('startBtn').innerText = '일시정지';
 
-            timerInterval = setInterval(() => {
-                if (totalSeconds > 0) {
-                    totalSeconds--;
-                    updateDisplay();
+            document.getElementById(
+                'startBtn'
+            ).innerText =
+                '일시정지';
 
-                    // 풋살: 10초 전 / 축구: 1분 전
-                    const warningTime = isSoccerMode ? 60 : 10;
+            timerInterval =
+                setInterval(() => {
 
-                    if (totalSeconds === warningTime) {
-                        sound10s.currentTime = 0;
-                        sound10s.play().catch(() => playClapSound());
+                    if (totalSeconds > 0) {
+
+                        totalSeconds--;
+
+                        updateDisplay();
+
+                        const warningTime =
+                            isSoccerMode ? 60 : 10;
+
+                        if (
+                            totalSeconds === warningTime
+                        ) {
+
+                            sound10s.currentTime = 0;
+
+                            sound10s
+                                .play()
+                                .catch(
+                                    () => playClapSound()
+                                );
+
+                        }
+
+                        if (totalSeconds === 0) {
+
+                            clearInterval(
+                                timerInterval
+                            );
+
+                            timerInterval = null;
+
+                            isRunning = false;
+
+                            document.getElementById(
+                                'startBtn'
+                            ).innerText =
+                                '시작';
+
+                            soundEnd.currentTime = 0;
+
+                            soundEnd
+                                .play()
+                                .catch(
+                                    () => playBuzzerSound()
+                                );
+
+                        }
+
                     }
 
-                    if (totalSeconds === 0) {
-                        clearInterval(timerInterval);
-                        timerInterval = null;
-                        isRunning = false;
-                        document.getElementById('startBtn').innerText = '시작';
-
-                        soundEnd.currentTime = 0;
-                        soundEnd.play().catch(() => playBuzzerSound());
-                    }
-                }
-            }, 1000);
+                }, 1000);
 
         }
-
 
         function resetTimer() {
 
             clearInterval(timerInterval);
+
             timerInterval = null;
+
             isRunning = false;
 
-            totalSeconds = initialSeconds;
+            totalSeconds =
+                initialSeconds;
 
             sound10s.pause();
             sound10s.currentTime = 0;
+
             soundEnd.pause();
             soundEnd.currentTime = 0;
 
-            document.getElementById('startBtn').innerText = '시작';
+            document.getElementById(
+                'startBtn'
+            ).innerText =
+                '시작';
+
             updateDisplay();
 
         }
-
 
         function changeScore(team, val) {
 
@@ -991,6 +1150,11 @@
                 ).innerText =
                     scoreA;
 
+                updateScoreSize(
+                    document.getElementById('scoreA'),
+                    scoreA
+                );
+
             } else {
 
                 scoreB =
@@ -1004,10 +1168,14 @@
                 ).innerText =
                     scoreB;
 
+                updateScoreSize(
+                    document.getElementById('scoreB'),
+                    scoreB
+                );
+
             }
 
         }
-
 
         function resetScore(team) {
 
@@ -1020,6 +1188,11 @@
                 ).innerText =
                     '0';
 
+                updateScoreSize(
+                    document.getElementById('scoreA'),
+                    0
+                );
+
             } else {
 
                 scoreB = 0;
@@ -1029,13 +1202,25 @@
                 ).innerText =
                     '0';
 
+                updateScoreSize(
+                    document.getElementById('scoreB'),
+                    0
+                );
+
             }
 
         }
+
         window.addEventListener("load", () => {
-    updateDisplay();
-});
+
+            updateDisplay();
+
+            updateAllScoreSizes();
+
+        });
+
     </script>
 
 </body>
+
 </html>
